@@ -1,8 +1,13 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080;
 
+// sets EJS as view engine on Express app
 app.set('view engine', 'ejs');
+
+// sets middleware
+app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
