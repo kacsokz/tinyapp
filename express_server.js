@@ -9,7 +9,7 @@ const generateRandomString = () => {
   const char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   // generate random number to map to an index on char string
   for (let i = 0; i < 6; i++) {
-    randSix += char.charAt(Math.floor(Math.random() * 62));
+    randSix += char.charAt(Math.floor(Math.random() * char.length));
   }
   return randSix;
 };
