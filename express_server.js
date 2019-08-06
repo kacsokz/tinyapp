@@ -31,7 +31,7 @@ app.listen(PORT, () => {
 
 // renders urlDatabase index page
 app.get('/urls', (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
 
@@ -44,23 +44,29 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-// create link on shortURL to redirect to longURL webpage
+// renders create new short url page
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
+});
+
+// once new shortURL is created, shortURL links to longURL webpage
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   res.redirect(longURL);
 });
 
-// renders create new short url page
-app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
-});
-
 // renders short url detail display page
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
-  res.render("urls_show", templateVars);
+  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  res.render('urls_show', templateVars);
+});
+
+// deletes shortURLs from urlDatabase & redirect to index page
+app.post('/urls/:shortURL/delete', (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
 });
 
 app.get('/urls.json', (req, res) => {
