@@ -3,6 +3,17 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 8080;
 
+// generates random 6 character string
+const generateRandomString = () => {
+  let randSix = '';
+  const char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  // generate random number to map to an index on char string
+  for (let i = 0; i < 6; i++) {
+    randSix += char.charAt(Math.floor(Math.random() * 62));
+  }
+  return randSix;
+};
+
 // sets EJS as view engine on Express app
 app.set('view engine', 'ejs');
 
