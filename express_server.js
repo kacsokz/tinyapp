@@ -37,11 +37,18 @@ app.get('/urls', (req, res) => {
 
 // shortURL submission form
 app.post('/urls', (req, res) => {
-  let shortURL = generateRandomString();
+  const shortURL = generateRandomString();
   // add shortURL longURL key-value pair to urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
   // redirect to show page for new shortURL/longURL pair
   res.redirect(`/urls/${shortURL}`);
+});
+
+// create link on shortURL to redirect to longURL webpage
+app.get('/u/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
 });
 
 // renders create new short url page
@@ -51,7 +58,7 @@ app.get('/urls/new', (req, res) => {
 
 // renders short url detail display page
 app.get('/urls/:shortURL', (req, res) => {
-  let shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL;
   let templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
   res.render("urls_show", templateVars);
 });
