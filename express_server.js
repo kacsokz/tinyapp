@@ -24,6 +24,12 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// create new shortURL form submission - temporary/testing code included
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send('OK');
+});
+
 // renders create new short url page
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
