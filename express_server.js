@@ -35,11 +35,12 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-// shortURL submission form
+// new shortURL submission form
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
   // add shortURL longURL key-value pair to urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
+
   // redirect to show page for new shortURL/longURL pair
   res.redirect(`/urls/${shortURL}`);
 });
@@ -56,23 +57,31 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
-// renders short url detail display page
-app.get('/urls/:shortURL', (req, res) => {
-  const shortURL = req.params.shortURL;
-  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
-  res.render('urls_show', templateVars);
-});
-
-// edit button redirect to edit form on show page
-app.post('/urls/:shortURL/update', (req, res) => {
+// index page edit button redirects to edit form on show page
+app.get('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
   res.redirect(`/urls/${shortURL}`);
+});
+
+// updates new longURL in urlDatabase and redirects to index page
+app.post('/urls/:shortURL/update', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
+  res.redirect('/urls');
 });
 
 // deletes shortURLs from urlDatabase & redirect to index page
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
+});
+
+// renders short url detail display page
+app.get('/urls/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  res.render('urls_show', templateVars);
 });
 
 app.get('/urls.json', (req, res) => {
