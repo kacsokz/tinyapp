@@ -35,6 +35,14 @@ const generateRandomString = () => {
   return randSix;
 };
 
+// searches users db for email submitted at registration
+const emailLookup = (regEmail) => {
+  for (let user in users) {
+    let dbEmail = users[user]["email"];
+    return (regEmail === dbEmail) ? true : false;
+  }
+};
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -51,8 +59,9 @@ app.get('/urls', (req, res) => {
 // new shortURL submission form
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
   // add shortURL longURL key-value pair to urlDatabase
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = longURL;
   // redirect to show page for new shortURL/longURL pair
   res.redirect(`/urls/${shortURL}`);
 });
@@ -76,7 +85,15 @@ app.post('/urls/register', (req, res) => {
     email: email,
     password: password
   };
-  res.cookie('user_id', userID);
+  // handles registration errors
+  if (email === '' || password === '') {
+    res.status(400).send('400 Please fill out all registration fields');
+  } else if (emailLookup(email)) {
+    res.status(400).send('400 Email has already been registered with TinyApp');
+  // successful new registration
+  } else {
+    res.cookie('user_id', userID);
+  }
   res.redirect('/urls');
 });
 
