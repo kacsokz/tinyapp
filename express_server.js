@@ -1,7 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080;
+
+// sets EJS as view engine on Express app
+app.set('view engine', 'ejs');
+
+// sets middleware for req.body and cookies
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+
+let urlDatabase = {
+  'b2xVn2': 'http://www.lighthouselabs.ca',
+  '9sm5xK': 'http://www.google.com'
+};
 
 // generates random 6 character string
 const generateRandomString = () => {
@@ -12,17 +25,6 @@ const generateRandomString = () => {
     randSix += char.charAt(Math.floor(Math.random() * char.length));
   }
   return randSix;
-};
-
-// sets EJS as view engine on Express app
-app.set('view engine', 'ejs');
-
-// sets middleware
-app.use(bodyParser.urlencoded({extended: true}));
-
-let urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
 };
 
 app.listen(PORT, () => {
