@@ -11,7 +11,15 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-let urlDatabase = {
+const users = {
+  'kacsokz': {
+    id: 'kacsokz',
+    email: 'caseysokach@gmail.com',
+    password: 'smelly-cat'
+  }
+};
+
+const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
   '9sm5xK': 'http://www.google.com'
 };
@@ -40,6 +48,15 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// new shortURL submission form
+app.post('/urls', (req, res) => {
+  const shortURL = generateRandomString();
+  // add shortURL longURL key-value pair to urlDatabase
+  urlDatabase[shortURL] = req.body.longURL;
+  // redirect to show page for new shortURL/longURL pair
+  res.redirect(`/urls/${shortURL}`);
+});
+
 // renders registration page
 app.get('/urls/register', (req, res) => {
   const templateVars = {
@@ -49,13 +66,18 @@ app.get('/urls/register', (req, res) => {
   res.render('urls_register', templateVars);
 });
 
-// new shortURL submission form
-app.post('/urls', (req, res) => {
-  const shortURL = generateRandomString();
-  // add shortURL longURL key-value pair to urlDatabase
-  urlDatabase[shortURL] = req.body.longURL;
-  // redirect to show page for new shortURL/longURL pair
-  res.redirect(`/urls/${shortURL}`);
+// store user registration in db, sets cookie w/ user_id & redirect to index
+app.post('/urls/register', (req, res) => {
+  const userID = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[userID] = {
+    id: userID,
+    email: email,
+    password: password
+  };
+  res.cookie('user_id', userID);
+  res.redirect('/urls');
 });
 
 // renders create new short url page
