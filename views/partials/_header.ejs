@@ -17,12 +17,10 @@
             </form>
           </div>
         <% } else { %>
-          <form class="form-inline" action="/urls/login" method="POST">
-            <div class="form-group">
-              <input class="form-control" type="text" name="username" placeholder="username" style="width: 200px; margin: 1em">
-              <button type="submit" class="btn btn-outline-secondary">Login</button>
-            </div>
-          </form>
+          <div class="navbar-nav ml-auto">
+            <a class="nav-item nav-link" href="/login">Login</a>
+            <a class="nav-item nav-link" href="/register">Register</a>
+          </div>
         <% } %>
       </div>
     </nav>
