@@ -40,6 +40,15 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+// renders registration page
+app.get('/urls/register', (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
+  res.render('urls_register', templateVars);
+});
+
 // new shortURL submission form
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
