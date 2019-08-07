@@ -67,7 +67,7 @@ app.post('/urls', (req, res) => {
 });
 
 // renders registration page
-app.get('/urls/register', (req, res) => {
+app.get('/register', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies["user_id"]]
@@ -76,7 +76,7 @@ app.get('/urls/register', (req, res) => {
 });
 
 // store user registration in db, sets cookie w/ user_id & redirect to index
-app.post('/urls/register', (req, res) => {
+app.post('/register', (req, res) => {
   const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
@@ -133,7 +133,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-// renders short url detail display page
+// renders short url detail show page
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const templateVars = {
@@ -142,6 +142,14 @@ app.get('/urls/:shortURL', (req, res) => {
     user: users[req.cookies["user_id"]]
   };
   res.render('urls_show', templateVars);
+});
+
+// renders login page
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  res.render('urls_login', templateVars);
 });
 
 // sets username cookie and redirects to index page
