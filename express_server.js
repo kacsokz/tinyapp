@@ -33,7 +33,10 @@ app.listen(PORT, () => {
 
 // renders urlDatabase index page
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render('urls_index', templateVars);
 });
 
@@ -48,7 +51,10 @@ app.post('/urls', (req, res) => {
 
 // renders create new short url page
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render('urls_new', templateVars);
 });
 
 // once new shortURL is created, shortURL links to longURL webpage
@@ -81,7 +87,11 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 // renders short url detail display page
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  const templateVars = {
+    shortURL: shortURL,
+    longURL: urlDatabase[shortURL],
+    username: req.cookies["username"]
+  };
   res.render('urls_show', templateVars);
 });
 
