@@ -51,7 +51,7 @@ app.listen(PORT, () => {
 app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_index', templateVars);
 });
@@ -70,7 +70,7 @@ app.post('/urls', (req, res) => {
 app.get('/urls/register', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_register', templateVars);
 });
@@ -80,6 +80,7 @@ app.post('/urls/register', (req, res) => {
   const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  // creates new user in users db
   users[userID] = {
     id: userID,
     email: email,
@@ -89,7 +90,7 @@ app.post('/urls/register', (req, res) => {
   if (email === '' || password === '') {
     res.status(400).send('400 Please fill out all registration fields');
   } else if (emailLookup(email)) {
-    res.status(400).send('400 Email has already been registered with TinyApp');
+    res.status(400).send('400 Email is already registered with TinyApp');
   // successful new registration
   } else {
     res.cookie('user_id', userID);
@@ -100,7 +101,7 @@ app.post('/urls/register', (req, res) => {
 // renders create new short url page
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_new', templateVars);
 });
@@ -138,21 +139,21 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: shortURL,
     longURL: urlDatabase[shortURL],
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_show', templateVars);
 });
 
 // sets username cookie and redirects to index page
 app.post('/login', (req, res) => {
-  const username = req.body.username;
-  res.cookie('username', username);
+  // const username = req.body.username;
+  // res.cookie('username', username);
   res.redirect('/urls');
 });
 
 // clears username cookie and redirects to index page
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  // res.clearCookie('username');
   res.redirect('/urls');
 });
 
