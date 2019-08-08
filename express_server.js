@@ -89,7 +89,6 @@ app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   // add shortURL longURL key-value pair to urlDatabase
   urlDatabase[shortURL] = longURL;
-  console.log(users);
   // redirect to show page for new shortURL/longURL pair
   res.redirect(`/urls/${shortURL}`);
 });
@@ -126,12 +125,18 @@ app.post('/register', (req, res) => {
   }
 });
 
-// renders create new short url page
+// if logged in it renders create new short url page
+// if not logged in, redirects to login page
 app.get('/urls/new', (req, res) => {
+  let userID = users[req.cookies["user_id"]];
   const templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: userID
   };
-  res.render('urls_new', templateVars);
+  if (userID) {
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // once new shortURL is created, shortURL links to longURL webpage
