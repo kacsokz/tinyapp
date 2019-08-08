@@ -43,6 +43,24 @@ const emailLookup = (regEmail) => {
   }
 };
 
+// returns matching password from user db by searching with reg email
+const passwordLookup = (regEmail) => {
+  for (let user in users) {
+    let dbEmail = users[user]["email"];
+    let dbPassword = users[user]["password"];
+    return (regEmail === dbEmail) ? dbPassword : false;
+  }
+};
+
+// returns matching id from user db by searching with reg email
+const idLookup = (regEmail) => {
+  for (let user in users) {
+    let dbEmail = users[user]["email"];
+    let dbID = users[user]["id"];
+    return (regEmail === dbEmail) ? dbID : false;
+  }
+};
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -152,10 +170,21 @@ app.get('/login', (req, res) => {
   res.render('urls_login', templateVars);
 });
 
-// sets username cookie and redirects to index page
+// confirms login details, throws errors if login doesn't exist or
+// password doesn't match. Upon successful login, set user_id cookie
+// and redirects to index page
 app.post('/login', (req, res) => {
-  // const username = req.body.username;
-  // res.cookie('username', username);
+  const formEmail = req.body.email;
+  const formPassword = req.body.password;
+  const dbPassword = passwordLookup(formEmail);
+  const dbID = idLookup(formEmail);
+  if (!emailLookup(formEmail)) {
+    res.status(403).send('403 Please Register for TinyApp');
+  } else if (emailLookup(formEmail) && dbPassword !== formPassword) {
+    res.status(403).send('403 Password does not match');
+  } else if (emailLookup(formEmail) && dbPassword === formPassword) {
+    res.cookie('user_id', dbID);
+  }
   res.redirect('/urls');
 });
 
