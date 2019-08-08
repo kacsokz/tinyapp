@@ -39,8 +39,11 @@ const generateRandomString = () => {
 const emailLookup = (regEmail) => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
-    return (regEmail === dbEmail) ? true : false;
+    if (regEmail === dbEmail) {
+      return true;
+    }
   }
+  return false;
 };
 
 // returns matching password from user db by searching with reg email
@@ -48,8 +51,11 @@ const passwordLookup = (regEmail) => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
     let dbPassword = users[user]["password"];
-    return (regEmail === dbEmail) ? dbPassword : false;
+    if (regEmail === dbEmail) {
+      return dbPassword;
+    }
   }
+  return false;
 };
 
 // returns matching id from user db by searching with reg email
@@ -57,8 +63,11 @@ const idLookup = (regEmail) => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
     let dbID = users[user]["id"];
-    return (regEmail === dbEmail) ? dbID : false;
+    if (regEmail === dbEmail) {
+      return dbID;
+    }
   }
+  return false;
 };
 
 app.listen(PORT, () => {
@@ -80,6 +89,7 @@ app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   // add shortURL longURL key-value pair to urlDatabase
   urlDatabase[shortURL] = longURL;
+  console.log(users);
   // redirect to show page for new shortURL/longURL pair
   res.redirect(`/urls/${shortURL}`);
 });
@@ -99,21 +109,21 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   // creates new user in users db
-  users[userID] = {
-    id: userID,
-    email: email,
-    password: password
-  };
   // handles registration errors
   if (email === '' || password === '') {
     res.status(400).send('400 Please fill out all registration fields');
   } else if (emailLookup(email)) {
     res.status(400).send('400 Email is already registered with TinyApp');
-  // successful new registration
+    // successful new registration
   } else {
+    users[userID] = {
+      id: userID,
+      email: email,
+      password: password
+    };
     res.cookie('user_id', userID);
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
 });
 
 // renders create new short url page
@@ -184,8 +194,8 @@ app.post('/login', (req, res) => {
     res.status(403).send('403 Password does not match');
   } else if (emailLookup(formEmail) && dbPassword === formPassword) {
     res.cookie('user_id', dbID);
+    res.redirect('/urls');
   }
-  res.redirect('/urls');
 });
 
 // clear user_id cookie and redirects to index page
