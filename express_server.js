@@ -14,14 +14,20 @@ app.use(cookieParser());
 const users = {
   'kacsokz': {
     id: 'kacsokz',
-    email: 'caseysokach@gmail.com',
+    email: 'casey@sokach.com',
     password: 'smelly-cat'
   }
 };
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b2xVn2': {
+    userID: 'kacsokz',
+    longURL: 'http://www.lighthouselabs.ca'
+  },
+  '9sm5xK': {
+    userID: 'kacsokz',
+    longURL: 'http://www.google.com'
+  }
 };
 
 // generates random 6 character string
@@ -214,5 +220,9 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.send('Welcome 127.0.0.1');
+});
+
+app.get('*', (req, res) => {
+  res.status(404).send('404 Page Not Found');
 });
