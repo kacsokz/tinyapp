@@ -188,9 +188,9 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-// clears username cookie and redirects to index page
+// clears user_id cookie and redirects to index page
 app.post('/logout', (req, res) => {
-  // res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
