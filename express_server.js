@@ -237,7 +237,7 @@ app.get('/urls/:shortURL', (req, res) => {
       res.render('urls_show', templateVars);
     // error if a user tries to access another users shortURLs
     } else {
-      res.status(403).send('403 shortURL not in your database');
+      res.redirect(longURL);
     }
   // displays error if user not logged in
   } else {
