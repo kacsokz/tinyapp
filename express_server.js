@@ -45,15 +45,15 @@ const generateRandomString = () => {
   return randSix;
 };
 
-// searches users db for email submitted at registration
-const emailLookup = regEmail => {
-  for (let user in users) {
-    let dbEmail = users[user]["email"];
-    if (regEmail === dbEmail) {
-      return true;
+const getUserByEmail = function(email, database) {
+  for (let users in database) {
+    const user = database[users];
+    const dbEmail = database[users].email;
+    if (email === dbEmail) {
+      return user;
     }
   }
-  return false;
+  return null;
 };
 
 // returns matching password from user db by searching with reg email
@@ -152,7 +152,7 @@ app.post('/register', (req, res) => {
   // handles registration errors
   if (email === '' || password === '') {
     res.status(400).send('400 Please fill out all registration fields');
-  } else if (emailLookup(email)) {
+  } else if (getUserByEmail(email, users)) {
     res.status(400).send('400 Email is already registered with TinyApp');
     // successful new registration
   } else {
@@ -194,7 +194,6 @@ app.get('/u/:shortURL', (req, res) => {
 // index page edit button redirects to edit form on show page
 app.get('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
-  console.log(shortURL);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -270,7 +269,7 @@ app.post('/login', (req, res) => {
   const hashedPassword = passwordLookup(formEmail);
   const dbID = idLookup(formEmail);
   // error if login email doesn't exist in db
-  if (!emailLookup(formEmail)) {
+  if (!getUserByEmail(formEmail, users)) {
     res.status(403).send('403 Please Register for TinyApp');
   } else {
     // for registered users, compares form pw w/hashed pw in db
@@ -279,11 +278,7 @@ app.post('/login', (req, res) => {
       res.status(403).send('403 Password does not match');
     } else {
       // on sucessful login, sets user_id cookie and redirect to index
-      
-      // res.cookie('user_id', dbID);
-
       req.session.user_id = dbID;
-
       res.redirect('/urls');
     }
   }
