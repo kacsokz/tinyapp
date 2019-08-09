@@ -163,7 +163,7 @@ app.post('/register', (req, res) => {
 // if logged in it renders create new short url page
 // if not logged in, redirects to login page
 app.get('/urls/new', (req, res) => {
-  let userID = users[req.cookies["user_id"]];
+  const userID = users[req.cookies["user_id"]];
   const templateVars = {
     user: userID
   };
@@ -184,6 +184,7 @@ app.get('/u/:shortURL', (req, res) => {
 // index page edit button redirects to edit form on show page
 app.get('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
+  console.log(shortURL);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -192,17 +193,27 @@ app.post('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body["longURL"];
   const userID = users[req.cookies["user_id"]].id;
-  urlDatabase[shortURL] = {
-    userID: userID,
-    longURL: longURL
-  };
-  res.redirect('/urls');
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    urlDatabase[shortURL] = {
+      userID: userID,
+      longURL: longURL
+    };
+    res.redirect('/urls');
+  } else {
+    res.status(403).send('403 Please Register or Login');
+  }
 });
 
 // deletes shortURLs from urlDatabase & redirect to index page
 app.post('/urls/:shortURL/delete', (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  const user = users[req.cookies["user_id"]];
+  if (user) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+  } else {
+    res.status(403).send('403 Please Register or Login');
+  }
 });
 
 // renders short url detail show page
@@ -223,7 +234,7 @@ app.get('/urls/:shortURL', (req, res) => {
         user: users[req.cookies["user_id"]],
         userURLs: userURLs
       };
-      res.render('urls_index', templateVars);
+      res.render('urls_show', templateVars);
     // error if a user tries to access another users shortURLs
     } else {
       res.status(403).send('403 shortURL not in your database');
@@ -232,17 +243,6 @@ app.get('/urls/:shortURL', (req, res) => {
   } else {
     res.status(403).send('403 Please Register or Login');
   }
-
-
-  // const user = users[req.cookies["user_id"]];
-
-  // if (user) {
-  //   res.render('urls_show', templateVars);
-  // } else {
-  //   res.status(403).send('403 Please Register or Login');
-  // }
-
-
 });
 
 // renders login page
