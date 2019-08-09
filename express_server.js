@@ -3,13 +3,10 @@ const app = express();
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getUserByEmail } = require('./helpers');
+const { getUserByEmail, generateRandomString } = require('./helpers');
 const PORT = 8080;
 
-// sets EJS as view engine on Express app
 app.set('view engine', 'ejs');
-
-// sets middleware for req.body and cookies
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
@@ -33,41 +30,6 @@ const urlDatabase = {
     userID: 'test',
     longURL: 'http://www.google.com'
   }
-};
-
-// generates random 6 character string
-const generateRandomString = () => {
-  let randSix = '';
-  const char = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  // generate random number to map to an index on char string
-  for (let i = 0; i < 6; i++) {
-    randSix += char.charAt(Math.floor(Math.random() * char.length));
-  }
-  return randSix;
-};
-
-// returns matching password from user db by searching with reg email
-const passwordLookup = regEmail => {
-  for (let user in users) {
-    let dbEmail = users[user]["email"];
-    let dbPassword = users[user]["password"];
-    if (regEmail === dbEmail) {
-      return dbPassword;
-    }
-  }
-  return false;
-};
-
-// returns matching id from user db by searching with reg email
-const idLookup = regEmail => {
-  for (let user in users) {
-    let dbEmail = users[user]["email"];
-    let dbID = users[user]["id"];
-    if (regEmail === dbEmail) {
-      return dbID;
-    }
-  }
-  return false;
 };
 
 // Filters urlDatabase by logged in users id
@@ -122,72 +84,68 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-// renders registration page
+// registration page
 app.get('/register', (req, res) => {
+  const user = users[req.session.user_id];
   const templateVars = {
     urls: urlDatabase,
     user: users[req.session.user_id]
   };
-  res.render('urls_register', templateVars);
+  // if user is logged in, redirect to index page
+  // if user is not logged in, render registration page
+  user ? res.redirect('/urls') : res.render('urls_register', templateVars);
 });
 
-// store user registration in db, sets cookie w/ user_id & redirect to index
+// Store new user in users db,csets cookie w/ user_id & redirect to index
 app.post('/register', (req, res) => {
   const newUserID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   // bcrypt hashing, 10 saltRounds
   const hashedPassword = bcrypt.hashSync(password, 10);
-  // creates new user in users db
-  // handles registration errors
+  // registration control flow, for errors or success
   if (email === '' || password === '') {
     res.status(400).send('400 Please fill out all registration fields');
   } else if (getUserByEmail(email, users)) {
     res.status(400).send('400 Email is already registered with TinyApp');
-    // successful new registration
+    // creates successful new registration
   } else {
     users[newUserID] = {
       id: newUserID,
       email: email,
       password: hashedPassword
     };
-
-    // res.cookie('user_id', userID);
-
     req.session.user_id = newUserID;
-
     res.redirect('/urls');
   }
 });
 
-// if logged in it renders create new short url page
-// if not logged in, redirects to login page
+// Create New URL
 app.get('/urls/new', (req, res) => {
   const userID = users[req.session.user_id];
   const templateVars = {
     user: userID
   };
-  if (userID) {
-    res.render('urls_new', templateVars);
-  } else {
-    res.redirect('/login');
-  }
+  // logged in, renders create new page : logged out, redirect to login
+  userID ? res.render('urls_new', templateVars) : res.redirect('/login');
 });
 
-// once new shortURL is created, url links to page
+// Redirect to longURL
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
+  const longURL = urlDatabase[shortURL].longURL;
+  const user = users[req.session.user_id];
+  // logged in, redirect to longURL : logged out, error
+  user ? res.redirect(longURL) : res.status(403).send('403 Please Register or Login');
 });
 
-// index page edit button redirects to edit form on show page
+// Index page Edit button redirects to edit form on show page
 app.get('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
-// updates new longURL in urlDatabase and redirects to index page
+// If logged in, update longURL in urlDatabase and redirect to index
 app.post('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body["longURL"];
@@ -236,7 +194,7 @@ app.get('/urls/:shortURL', (req, res) => {
       res.render('urls_show', templateVars);
     // error if a user tries to access another users shortURLs
     } else {
-      res.redirect(longURL);
+      res.status(403).send('This URL is not part of your collection');
     }
   // displays error if user not logged in
   } else {
@@ -244,7 +202,7 @@ app.get('/urls/:shortURL', (req, res) => {
   }
 });
 
-// renders login page
+// Renders login page
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.session.user_id]
@@ -252,12 +210,12 @@ app.get('/login', (req, res) => {
   res.render('urls_login', templateVars);
 });
 
-// login page
+// Login page
 app.post('/login', (req, res) => {
   const formEmail = req.body.email;
   const formPassword = req.body.password;
-  const hashedPassword = passwordLookup(formEmail);
-  const dbID = idLookup(formEmail);
+  const hashedPassword = getUserByEmail(formEmail, users).password;
+  const dbID = getUserByEmail(formEmail, users).id;
   // error if login email doesn't exist in db
   if (!getUserByEmail(formEmail, users)) {
     res.status(403).send('403 Please Register for TinyApp');
@@ -274,19 +232,21 @@ app.post('/login', (req, res) => {
   }
 });
 
-// clear user_id cookie and redirects to index page
+// Logout button clears cookie and redirects to index page
 app.post('/logout', (req, res) => {
   res.clearCookie('session');
   res.clearCookie('session.sig');
   res.redirect('/urls');
 });
 
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
+// logged in, redirect to index : logged out, redirect to login
+app.get('/', (req, res) => {
+  const userID = users[req.session.user_id];
+  userID ? res.redirect('/urls') : res.redirect('/login');
 });
 
-app.get('/', (req, res) => {
-  res.send('Welcome 127.0.0.1');
+app.get('/urls.json', (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.get('*', (req, res) => {
