@@ -1,4 +1,3 @@
-
 const getUserByEmail = function(email, database) {
   for (let users in database) {
     const user = database[users];
@@ -7,7 +6,7 @@ const getUserByEmail = function(email, database) {
       return user;
     }
   }
-  return null;
+  return undefined;
 };
 
 module.exports = { getUserByEmail };
