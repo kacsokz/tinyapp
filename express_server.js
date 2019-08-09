@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
@@ -12,20 +13,20 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
 const users = {
-  'kacsokz': {
-    id: 'kacsokz',
-    email: 'casey@sokach.com',
-    password: 'smelly-cat'
+  'test': {
+    id: 'test',
+    email: 'test@test.com',
+    password: bcrypt.hashSync('test', 10)
   }
 };
 
 const urlDatabase = {
   'b2xVn2': {
-    userID: 'kacsokz',
+    userID: 'test',
     longURL: 'http://www.lighthouselabs.ca'
   },
   '9sm5xK': {
-    userID: 'kacsokz',
+    userID: 'test',
     longURL: 'http://www.google.com'
   }
 };
@@ -42,7 +43,7 @@ const generateRandomString = () => {
 };
 
 // searches users db for email submitted at registration
-const emailLookup = (regEmail) => {
+const emailLookup = regEmail => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
     if (regEmail === dbEmail) {
@@ -53,7 +54,7 @@ const emailLookup = (regEmail) => {
 };
 
 // returns matching password from user db by searching with reg email
-const passwordLookup = (regEmail) => {
+const passwordLookup = regEmail => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
     let dbPassword = users[user]["password"];
@@ -65,7 +66,7 @@ const passwordLookup = (regEmail) => {
 };
 
 // returns matching id from user db by searching with reg email
-const idLookup = (regEmail) => {
+const idLookup = regEmail => {
   for (let user in users) {
     let dbEmail = users[user]["email"];
     let dbID = users[user]["id"];
@@ -109,7 +110,7 @@ app.get('/urls', (req, res) => {
       userURLs: userURLs
     };
     res.render('urls_index', templateVars);
-  // displays error if user not logged in
+    // displays error if user not logged in
   } else {
     res.status(403).send('403 Please Register or Login');
   }
@@ -142,6 +143,8 @@ app.post('/register', (req, res) => {
   const userID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  // bcrypt hashing, 10 saltRounds
+  const hashedPassword = bcrypt.hashSync(password, 10);
   // creates new user in users db
   // handles registration errors
   if (email === '' || password === '') {
@@ -153,7 +156,7 @@ app.post('/register', (req, res) => {
     users[userID] = {
       id: userID,
       email: email,
-      password: password
+      password: hashedPassword
     };
     res.cookie('user_id', userID);
     res.redirect('/urls');
@@ -253,21 +256,25 @@ app.get('/login', (req, res) => {
   res.render('urls_login', templateVars);
 });
 
-// confirms login details, throws errors if login doesn't exist or
-// password doesn't match. Upon successful login, set user_id cookie
-// and redirects to index page
+// login page
 app.post('/login', (req, res) => {
   const formEmail = req.body.email;
   const formPassword = req.body.password;
-  const dbPassword = passwordLookup(formEmail);
+  const hashedPassword = passwordLookup(formEmail);
   const dbID = idLookup(formEmail);
+  // error if login email doesn't exist in db
   if (!emailLookup(formEmail)) {
     res.status(403).send('403 Please Register for TinyApp');
-  } else if (emailLookup(formEmail) && dbPassword !== formPassword) {
-    res.status(403).send('403 Password does not match');
-  } else if (emailLookup(formEmail) && dbPassword === formPassword) {
-    res.cookie('user_id', dbID);
-    res.redirect('/urls');
+  } else {
+    // for registered users, compares form pw w/hashed pw in db
+    const comparePassword = bcrypt.compareSync(formPassword, hashedPassword);
+    if (!comparePassword) {
+      res.status(403).send('403 Password does not match');
+    } else {
+      // on sucessful login, sets user_id cookie and redirect to index
+      res.cookie('user_id', dbID);
+      res.redirect('/urls');
+    }
   }
 });
 
