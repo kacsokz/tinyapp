@@ -1,8 +1,9 @@
 const express = require('express');
+const app = express();
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const app = express();
+const { getUserByEmail } = require('./helpers');
 const PORT = 8080;
 
 // sets EJS as view engine on Express app
@@ -43,17 +44,6 @@ const generateRandomString = () => {
     randSix += char.charAt(Math.floor(Math.random() * char.length));
   }
   return randSix;
-};
-
-const getUserByEmail = function(email, database) {
-  for (let users in database) {
-    const user = database[users];
-    const dbEmail = database[users].email;
-    if (email === dbEmail) {
-      return user;
-    }
-  }
-  return null;
 };
 
 // returns matching password from user db by searching with reg email
