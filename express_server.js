@@ -76,17 +76,43 @@ const idLookup = (regEmail) => {
   return false;
 };
 
+// Filters urlDatabase by logged in users id
+const urlsForUser = id => {
+  const userURLs = {};
+  for (let shortURL in urlDatabase) {
+    const userID = urlDatabase[shortURL].userID;
+    const longURL = urlDatabase[shortURL].longURL;
+    if (id === userID) {
+      userURLs[shortURL] = {
+        userID: userID,
+        longURL: longURL
+      };
+    }
+  }
+  return userURLs;
+};
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
 // renders urlDatabase index page
 app.get('/urls', (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]]
-  };
-  res.render('urls_index', templateVars);
+  const user = users[req.cookies["user_id"]];
+  // user logged in, display urls page
+  if (user) {
+    const userID = users[req.cookies["user_id"]].id;
+    const userURLs = urlsForUser(userID);
+    const templateVars = {
+      urls: urlDatabase,
+      user: users[req.cookies["user_id"]],
+      userURLs: userURLs
+    };
+    res.render('urls_index', templateVars);
+  // displays error if user not logged in
+  } else {
+    res.status(403).send('403 Please Register or Login');
+  }
 });
 
 // new shortURL submission
@@ -94,19 +120,11 @@ app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   const userID = users[req.cookies["user_id"]].id;
-
-  console.log(longURL);
-
+  // add new shortURL to database
   urlDatabase[shortURL] = {
     userID: userID,
     longURL: longURL
   };
-
-  // add shortURL longURL key-value pair to urlDatabase
-  // urlDatabase[shortURL] = longURL;
-
-  console.log(urlDatabase);
-
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -156,7 +174,7 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
-// once new shortURL is created, shortURL links to longURL webpage
+// once new shortURL is created, url links to page
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
@@ -172,8 +190,12 @@ app.get('/urls/:shortURL/update', (req, res) => {
 // updates new longURL in urlDatabase and redirects to index page
 app.post('/urls/:shortURL/update', (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  const longURL = req.body["longURL"];
+  const userID = users[req.cookies["user_id"]].id;
+  urlDatabase[shortURL] = {
+    userID: userID,
+    longURL: longURL
+  };
   res.redirect('/urls');
 });
 
@@ -187,12 +209,40 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL]["longURL"];
-  const templateVars = {
-    shortURL: shortURL,
-    longURL: longURL,
-    user: users[req.cookies["user_id"]]
-  };
-  res.render('urls_show', templateVars);
+  const user = users[req.cookies["user_id"]];
+  // user logged in, display urls page
+  if (user) {
+    const userID = users[req.cookies["user_id"]].id;
+    const userURLs = urlsForUser(userID);
+    // displays only shortURL pages that belong to the user
+    if (userURLs[shortURL]) {
+      const templateVars = {
+        shortURL: shortURL,
+        longURL: longURL,
+        urls: urlDatabase,
+        user: users[req.cookies["user_id"]],
+        userURLs: userURLs
+      };
+      res.render('urls_index', templateVars);
+    // error if a user tries to access another users shortURLs
+    } else {
+      res.status(403).send('403 shortURL not in your database');
+    }
+  // displays error if user not logged in
+  } else {
+    res.status(403).send('403 Please Register or Login');
+  }
+
+
+  // const user = users[req.cookies["user_id"]];
+
+  // if (user) {
+  //   res.render('urls_show', templateVars);
+  // } else {
+  //   res.status(403).send('403 Please Register or Login');
+  // }
+
+
 });
 
 // renders login page
