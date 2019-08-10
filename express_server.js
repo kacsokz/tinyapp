@@ -198,13 +198,13 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const formEmail = req.body.email;
   const formPassword = req.body.password;
-  const hashedPassword = getUserByEmail(formEmail, users).password;
-  const dbID = getUserByEmail(formEmail, users).id;
   // error if login email doesn't exist in db
   if (!getUserByEmail(formEmail, users)) {
     res.status(403).send('403 Please Register for TinyApp');
   } else {
     // for registered users, compares form pw w/hashed pw in db
+    const dbID = getUserByEmail(formEmail, users).id;
+    const hashedPassword = getUserByEmail(formEmail, users).password;
     const comparePassword = bcrypt.compareSync(formPassword, hashedPassword);
     if (!comparePassword) {
       res.status(403).send('403 Password does not match');
