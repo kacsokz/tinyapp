@@ -3,7 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-const { getUserByEmail, generateRandomString } = require('./helpers');
+const { generateRandomString, getURLsByUser, getUserByEmail } = require('./helpers');
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
@@ -32,22 +32,6 @@ const urlDatabase = {
   }
 };
 
-// Filters urlDatabase by logged in users id
-const urlsForUser = id => {
-  const userURLs = {};
-  for (let shortURL in urlDatabase) {
-    const userID = urlDatabase[shortURL].userID;
-    const longURL = urlDatabase[shortURL].longURL;
-    if (id === userID) {
-      userURLs[shortURL] = {
-        userID: userID,
-        longURL: longURL
-      };
-    }
-  }
-  return userURLs;
-};
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -58,7 +42,7 @@ app.get('/urls', (req, res) => {
   // user logged in, display urls page
   if (user) {
     const userID = users[req.session.user_id].id;
-    const userURLs = urlsForUser(userID);
+    const userURLs = getURLsByUser(userID, urlDatabase);
     const templateVars = {
       urls: urlDatabase,
       user: users[req.session.user_id],
@@ -181,7 +165,7 @@ app.get('/urls/:shortURL', (req, res) => {
   // user logged in, display urls page
   if (user) {
     const userID = users[req.session.user_id].id;
-    const userURLs = urlsForUser(userID);
+    const userURLs = getURLsByUser(userID, urlDatabase);
     // displays only shortURL pages that belong to the user
     if (userURLs[shortURL]) {
       const templateVars = {
