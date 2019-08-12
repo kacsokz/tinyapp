@@ -119,8 +119,7 @@ app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
   const user = users[req.session.user_id];
-  // logged in, redirect to longURL : logged out, error
-  user ? res.redirect(longURL) : res.status(403).send('403 Please Register or Login');
+  res.redirect(longURL);
 });
 
 // Index page Edit button redirects to edit form on show page
@@ -188,10 +187,12 @@ app.get('/urls/:shortURL', (req, res) => {
 
 // Renders login page
 app.get('/login', (req, res) => {
+  const user = users[req.session.user_id];
   const templateVars = {
     user: users[req.session.user_id]
   };
-  res.render('urls_login', templateVars);
+  // if logged in, redirect to index, if not logged in, render login page
+  user ? res.redirect('/urls') : res.render('urls_login', templateVars);
 });
 
 // Login page
